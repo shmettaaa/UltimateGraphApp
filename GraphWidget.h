@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "Graph.h"
+#include "Edge.h"
 
 class GraphWidget : public QWidget
 {
@@ -26,8 +27,13 @@ protected:
 private:
     void drawVertex(QPainter &painter, Vertex *vertex);
     void drawEdge(QPainter &painter, Vertex *v1, Vertex *v2);
+
+
     Vertex *m_clickedVertex; //Для режима указателя
-    Vertex *m_cursorVertex;  //Под курсором
+    Vertex *m_cursorVertex;  //Под курсором(
+    Edge *m_clickedEdge;
+    Edge *m_cursorEdge;
+
     bool isReplacing;
     Graph *m_graph;
     Mode m_currentMode;

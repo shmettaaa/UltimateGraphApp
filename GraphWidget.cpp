@@ -9,7 +9,8 @@ GraphWidget::GraphWidget(QWidget *parent) : QWidget(parent)
     , m_clickedVertex(nullptr)
     , m_cursorVertex(nullptr)
     , isReplacing(false)
-    , m_selectedVertex(nullptr)
+    , m_selectedVertex(nullptr),
+m_clickedEdge(nullptr), m_cursorEdge(nullptr)
 {
     setMinimumSize(600, 400);
     setStyleSheet("background-color: white;");
@@ -26,6 +27,8 @@ void GraphWidget::setMode(Mode mode)
 {
     m_currentMode = mode;
     m_selectedVertex = nullptr;
+    m_clickedEdge = nullptr;
+    m_cursorEdge = nullptr;
     update();
 }
 
@@ -35,7 +38,6 @@ void GraphWidget::clearGraph()
     m_selectedVertex = nullptr;
     update();
 }
-
 void GraphWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
@@ -43,12 +45,8 @@ void GraphWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    for (Vertex *vertex : m_graph->vertices()) {
-        for (Vertex *neighbor : vertex->neighbors()) {
-            if (vertex->id() < neighbor->id()) {
-                drawEdge(painter, vertex, neighbor);
-            }
-        }
+    for (Edge *edge : m_graph->edges()) {
+        drawEdge(painter, edge->from(), edge->to());
     }
 
     for (Vertex *vertex : m_graph->vertices()) {
@@ -58,36 +56,61 @@ void GraphWidget::paintEvent(QPaintEvent *event)
     if (m_selectedVertex) {
         painter.setPen(QPen(Qt::red, 2));
         painter.setBrush(Qt::NoBrush);
-        painter.drawEllipse(m_selectedVertex->position(),
-                           VERTEX_RADIUS + 2, VERTEX_RADIUS + 2);
+        painter.drawEllipse(m_selectedVertex->position(), VERTEX_RADIUS + 2, VERTEX_RADIUS + 2);
     }
     if (m_clickedVertex) {
         painter.setPen(QPen(Qt::red, 2));
         painter.setBrush(Qt::NoBrush);
-        painter.drawEllipse(m_clickedVertex->position(),
-            VERTEX_RADIUS + 2, VERTEX_RADIUS+2 );
+        painter.drawEllipse(m_clickedVertex->position(), VERTEX_RADIUS + 2, VERTEX_RADIUS + 2);
     }
     if (m_cursorVertex) {
-        painter.setPen(QPen(QColor(255,0,0,128), 2));
+        painter.setPen(QPen(QColor(255, 0, 0, 128), 2));
         painter.setBrush(Qt::NoBrush);
-        painter.drawEllipse(m_cursorVertex->position(),
-            VERTEX_RADIUS + 2, VERTEX_RADIUS+2 );
+        painter.drawEllipse(m_cursorVertex->position(), VERTEX_RADIUS + 2, VERTEX_RADIUS + 2);
+    }
+
+    if (m_cursorEdge) {
+        painter.setPen(QPen(QColor(255, 0, 0, 128), 4));
+        painter.drawLine(m_cursorEdge->from()->position(), m_cursorEdge->to()->position());
+    }
+    if (m_clickedEdge) {
+        painter.setPen(QPen(Qt::red, 4));
+        painter.drawLine(m_clickedEdge->from()->position(), m_clickedEdge->to()->position());
     }
 }
 
-void GraphWidget::mousePressEvent(QMouseEvent *event){
+void GraphWidget::mouseMoveEvent(QMouseEvent *event) {
+    QPoint pos = event->pos();
+
+    if (m_currentMode == SelectMode) {
+        Vertex* vertex = m_graph->findVertexAt(pos);
+        Edge* edge = m_graph->findEdgeAt(pos);
+        if (vertex) {
+            m_cursorVertex = vertex;
+            m_cursorEdge = nullptr;
+        } else if (edge) {
+            m_cursorVertex = nullptr;
+            m_cursorEdge = edge;
+        } else {
+            m_cursorVertex = nullptr;
+            m_cursorEdge = nullptr;
+        }
+        update();
+    }
+}
+
+void GraphWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
-        QPoint clickPos = event->pos();
+        QPoint pos = event->pos();
 
         switch (m_currentMode) {
-
         case AddVertexMode:
-            m_graph->addVertex(clickPos);
+            m_graph->addVertex(pos);
             update();
             break;
 
         case AddEdgeMode:
-            if (Vertex *vertex = m_graph->findVertexAt(clickPos)) {
+            if (Vertex *vertex = m_graph->findVertexAt(pos)) {
                 if (!m_selectedVertex) {
                     m_selectedVertex = vertex;
                 } else if (m_selectedVertex != vertex) {
@@ -100,33 +123,41 @@ void GraphWidget::mousePressEvent(QMouseEvent *event){
             update();
             break;
 
-            case SelectMode:
-                if (Vertex *vertex = m_graph->findVertexAt(clickPos)) {
-                    m_clickedVertex = vertex;
-                    isReplacing = true;
-                }
-                else {
-                    m_clickedVertex = nullptr;
-                    isReplacing = false;
-                }
-                update();
+        case SelectMode:
+            Vertex* vertex = m_graph->findVertexAt(pos);
+            Edge* edge = m_graph->findEdgeAt(pos);
 
+            if (vertex) {
+                m_clickedVertex = vertex;
+                m_clickedEdge = nullptr;
+            } else if (edge) {
+                m_clickedVertex = nullptr;
+                m_clickedEdge = edge;
+            } else {
+                m_clickedVertex = nullptr;
+                m_clickedEdge = nullptr;
+            }
+            update();
+            break;
         }
-
     }
 }
 
-void GraphWidget::mouseMoveEvent(QMouseEvent *event) {
-    QPoint clickPos = event->pos();
-
-    if (m_currentMode == SelectMode) {
-        Vertex *vertex = m_graph->findVertexAt(clickPos);
-
-
-
-        if (m_cursorVertex != vertex) {
-            m_cursorVertex = vertex;
-
+void GraphWidget::keyPressEvent(QKeyEvent *event) {
+    if (m_currentMode == SelectMode && event->key() == Qt::Key_Delete) {
+        if (m_clickedVertex) {
+            m_graph->removeVertex(m_clickedVertex);
+            if (m_cursorVertex == m_clickedVertex) {
+                m_cursorVertex = nullptr;
+            }
+            m_clickedVertex = nullptr;
+            update();
+        } else if (m_clickedEdge) {
+            m_graph->removeEdge(m_clickedEdge);
+            if (m_cursorEdge == m_clickedEdge) {
+                m_cursorEdge = nullptr;
+            }
+            m_clickedEdge = nullptr;
             update();
         }
     }
@@ -151,16 +182,3 @@ void GraphWidget::drawEdge(QPainter &painter, Vertex *v1, Vertex *v2)
     painter.drawLine(v1->position(), v2->position());
 }
 
-void GraphWidget::keyPressEvent(QKeyEvent *event) {
-    if (m_currentMode == SelectMode && event->key() == Qt::Key_Delete) {
-        if (m_clickedVertex) {
-            m_graph->removeVertex(m_clickedVertex);
-            if (m_cursorVertex == m_clickedVertex) {
-                m_cursorVertex = nullptr;
-            }
-            m_clickedVertex = nullptr;
-
-            update();
-        }
-    }
-}
