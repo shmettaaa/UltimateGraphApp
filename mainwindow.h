@@ -7,6 +7,7 @@
 class QToolBar;
 class QAction;
 class QActionGroup;
+class QPlainTextEdit;
 
 class MainWindow : public QMainWindow
 {
@@ -21,7 +22,6 @@ private slots:
     void onAddEdgeMode();
     void onClearGraph();
 
-
 private:
     void createToolBar();
     void createActions();
@@ -33,6 +33,7 @@ private:
     QAction *m_addEdgeAction;
     QAction *m_clearAction;
     QActionGroup *m_toolGroup;
+    QPlainTextEdit *m_textOutput;
 };
 
 #endif

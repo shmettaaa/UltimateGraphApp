@@ -10,10 +10,9 @@ GraphWidget::GraphWidget(QWidget *parent) : QWidget(parent)
     , m_cursorVertex(nullptr)
     , isReplacing(false)
     , m_selectedVertex(nullptr),
-m_clickedEdge(nullptr), m_cursorEdge(nullptr)
+    m_clickedEdge(nullptr), m_cursorEdge(nullptr)
 {
     setMinimumSize(600, 400);
-    setStyleSheet("background-color: white;");
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 }
@@ -36,6 +35,9 @@ void GraphWidget::clearGraph()
 {
     m_graph->clear();
     m_selectedVertex = nullptr;
+    m_clickedVertex = nullptr;
+    m_clickedEdge = nullptr;
+
     update();
 }
 void GraphWidget::paintEvent(QPaintEvent *event)

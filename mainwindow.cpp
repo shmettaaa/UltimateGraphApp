@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QPlainTextEdit>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_graphWidget(nullptr)
@@ -14,23 +15,34 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_addEdgeAction(nullptr)
     , m_clearAction(nullptr)
     , m_toolGroup(nullptr)
-
+    , m_textOutput(nullptr)
 {
     setWindowTitle("Graph Application");
-    setMinimumSize(1000, 700);
+    setMinimumSize(1000, 800);
 
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-
-    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
-
-    m_graphWidget = new GraphWidget(this);
-    mainLayout->addWidget(m_graphWidget, 1);
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    QHBoxLayout *graphAreaLayout = new QHBoxLayout();
 
     createToolBar();
     createActions();
+    graphAreaLayout->addWidget(m_toolBar);
+    m_graphWidget = new GraphWidget(this);
+    m_graphWidget->setStyleSheet("background-color: #e6e6fa;");
 
-    mainLayout->addWidget(m_toolBar);
+    graphAreaLayout->addWidget(m_graphWidget, 1);
+    mainLayout->addLayout(graphAreaLayout, 1);
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    QWidget *leftSpace = new QWidget();
+    leftSpace->setFixedWidth(200);
+    bottomLayout->addWidget(leftSpace);
+    m_textOutput = new QPlainTextEdit(this);
+    m_textOutput->setReadOnly(true);
+    m_textOutput->setMaximumHeight(150);
+    m_textOutput->setPlaceholderText("Здесь будут отображаться результаты работы алгоритмов с графом...");
+    bottomLayout->addWidget(m_textOutput, 1);
+    mainLayout->addLayout(bottomLayout);
 }
 
 void MainWindow::createToolBar()
@@ -38,7 +50,7 @@ void MainWindow::createToolBar()
     m_toolBar = new QToolBar("Graph Tools", this);
     m_toolBar->setOrientation(Qt::Vertical);
     m_toolBar->setIconSize(QSize(32, 32));
-    m_toolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    m_toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 }
 
 void MainWindow::createActions()
@@ -54,7 +66,6 @@ void MainWindow::createActions()
 
     m_addVertexAction = new QAction("Add Vertex", this);
     m_addVertexAction->setCheckable(true);
-
     m_toolGroup->addAction(m_addVertexAction);
     m_toolBar->addAction(m_addVertexAction);
 
@@ -77,6 +88,7 @@ void MainWindow::createActions()
 void MainWindow::onSelectMode() {
     m_graphWidget->setMode(GraphWidget::SelectMode);
 }
+
 void MainWindow::onAddVertexMode(){
     m_graphWidget->setMode(GraphWidget::AddVertexMode);
 }
@@ -87,4 +99,5 @@ void MainWindow::onAddEdgeMode(){
 
 void MainWindow::onClearGraph(){
     m_graphWidget->clearGraph();
+    m_textOutput->clear();
 }
