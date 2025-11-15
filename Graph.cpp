@@ -36,18 +36,18 @@ void Graph::removeVertex(Vertex *vertex)
     }
 }
 
-void Graph::addEdge(Vertex *v1, Vertex *v2)
+void Graph::addEdge(Vertex *from, Vertex *to)
 {
-    if (v1 && v2 && v1 != v2 && !getEdge(v1, v2)) {
-        v1->addNeighbor(v2);
-        Edge *newEdge = new Edge(v1, v2);
+    if (from && to && from != to && !getEdge(from, to)) {
+        from->addOutNeighbor(to);
+        Edge *newEdge = new Edge(from, to);
         m_edges.append(newEdge);
     }
 }
 
-void Graph::removeEdge(Vertex *v1, Vertex *v2)
+void Graph::removeEdge(Vertex *from, Vertex *to)
 {
-    Edge *edge = getEdge(v1, v2);
+    Edge *edge = getEdge(from, to);
     if (edge) {
         removeEdge(edge);
     }
@@ -56,7 +56,9 @@ void Graph::removeEdge(Vertex *v1, Vertex *v2)
 void Graph::removeEdge(Edge *edge)
 {
     if (m_edges.contains(edge)) {
-        if (edge->from()) edge->from()->removeNeighbor(edge->to());
+        if (edge->from()) {
+            edge->from()->removeOutNeighbor(edge->to());
+        }
         m_edges.removeAll(edge);
         delete edge;
     }
@@ -93,10 +95,9 @@ double Graph::distanceToLineSegment(const QPoint &point, const QPoint &lineStart
     return sqrt(diff.x() * diff.x() + diff.y() * diff.y());
 }
 
-Edge* Graph::getEdge(Vertex *v1, Vertex *v2) const {
+Edge* Graph::getEdge(Vertex *from, Vertex *to) const {
     for (Edge *edge : m_edges) {
-        if ((edge->from() == v1 && edge->to() == v2) ||
-            (edge->from() == v2 && edge->to() == v1)) {
+        if (edge->from() == from && edge->to() == to) {
             return edge;
         }
     }
@@ -126,9 +127,9 @@ Vertex* Graph::getVertexById(int id) const
     return nullptr;
 }
 
-bool Graph::areConnected(Vertex *v1, Vertex *v2) const
+bool Graph::areConnected(Vertex *from, Vertex *to) const
 {
-    return v1 && v2 && v1->hasNeighbor(v2);
+    return from && to && from->hasOutNeighbor(to);
 }
 
 void Graph::clear()

@@ -29,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     createActions();
     graphAreaLayout->addWidget(m_toolBar);
     m_graphWidget = new GraphWidget(this);
-    m_graphWidget->setStyleSheet("background-color: #e6e6fa;");
 
     graphAreaLayout->addWidget(m_graphWidget, 1);
     mainLayout->addLayout(graphAreaLayout, 1);

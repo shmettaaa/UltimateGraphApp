@@ -10,31 +10,29 @@ public:
     Vertex(int id, const QPoint &position);
     ~Vertex();
 
+    int id() const { return m_id; }
+    QPoint position() const { return m_position; }
+    const QSet<Vertex*>& outNeighbors() const { return m_outNeighbors; }
+    const QSet<Vertex*>& inNeighbors() const { return m_inNeighbors; }
 
-    int id() const {
-        return m_id;
-    }
-    QPoint position() const {
-        return m_position;
-    }
-    const QSet<Vertex*>& neighbors() const {
-        return m_neighbors;
-    }
+    void setPosition(const QPoint &position) { m_position = position; }
 
+    void addOutNeighbor(Vertex *neighbor);
+    void removeOutNeighbor(Vertex *neighbor);
+    bool hasOutNeighbor(Vertex *neighbor) const;
 
-    void setPosition(const QPoint &position) {
-        m_position = position;
-    }
+    void addInNeighbor(Vertex *neighbor);
+    void removeInNeighbor(Vertex *neighbor);
+    bool hasInNeighbor(Vertex *neighbor) const;
 
-    void addNeighbor(Vertex *neighbor);
-    void removeNeighbor(Vertex *neighbor);
-    bool hasNeighbor(Vertex *neighbor) const;
-    int degree() const { return m_neighbors.size(); }
+    int outDegree() const { return m_outNeighbors.size(); }
+    int inDegree() const { return m_inNeighbors.size(); }
 
 private:
     int m_id;
     QPoint m_position;
-    QSet<Vertex*> m_neighbors;
+    QSet<Vertex*> m_outNeighbors;
+    QSet<Vertex*> m_inNeighbors;
 };
 
 #endif

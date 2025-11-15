@@ -13,14 +13,14 @@ public:
 
     Vertex* addVertex(const QPoint &position);
     void removeVertex(Vertex *vertex);
-    void addEdge(Vertex *v1, Vertex *v2);
-    void removeEdge(Vertex *v1, Vertex *v2);
+    void addEdge(Vertex *from, Vertex *to);
+    void removeEdge(Vertex *from, Vertex *to);
     void removeEdge(Edge *edge);
 
     Edge* findEdgeAt(const QPoint &point, int radius = 5) const;
     Vertex* findVertexAt(const QPoint &point, int radius = 20) const;
     Vertex* getVertexById(int id) const;
-    bool areConnected(Vertex *v1, Vertex *v2) const;
+    bool areConnected(Vertex *from, Vertex *to) const;
 
     const QVector<Vertex*>& vertices() const { return m_vertices; }
     const QVector<Edge*>& edges() const { return m_edges; }
@@ -34,7 +34,7 @@ private:
     QVector<Edge*> m_edges;
     int m_vertexCounter;
     double distanceToLineSegment(const QPoint &point, const QPoint &lineStart, const QPoint &lineEnd) const;
-    Edge* getEdge(Vertex *v1, Vertex *v2) const;
+    Edge* getEdge(Vertex *from, Vertex *to) const;
 };
 
 #endif

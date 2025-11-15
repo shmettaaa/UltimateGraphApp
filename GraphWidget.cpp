@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
+#include <cmath>
 
 GraphWidget::GraphWidget(QWidget *parent) : QWidget(parent)
     , m_graph(new Graph())
@@ -37,22 +38,60 @@ void GraphWidget::clearGraph()
     m_selectedVertex = nullptr;
     m_clickedVertex = nullptr;
     m_clickedEdge = nullptr;
-
     update();
 }
+
+QPointF GraphWidget::calculatePointOnCircle(const QPointF &center, const QPointF &direction, double radius) const
+{
+    double length = sqrt(direction.x() * direction.x() + direction.y() * direction.y());
+    if (length == 0)
+        return center;
+
+    QPointF unitVector(direction.x() / length, direction.y() / length);
+    return center + unitVector * radius;
+}
+
+QPointF GraphWidget::calculateEdgeStartPoint(Vertex *from, Vertex *to) const
+{
+    QPointF fromPos = from->position();
+    QPointF toPos = to->position();
+    QPointF direction = toPos - fromPos;
+
+    return calculatePointOnCircle(fromPos, direction, VERTEX_RADIUS);
+}
+
+QPointF GraphWidget::calculateEdgeEndPoint(Vertex *from, Vertex *to) const
+{
+    QPointF fromPos = from->position();
+    QPointF toPos = to->position();
+    QPointF direction = fromPos - toPos;
+
+    return calculatePointOnCircle(toPos, direction, VERTEX_RADIUS);
+}
+
 void GraphWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
     QPainter painter(this);
+    painter.fillRect(rect(), QColor(255, 240, 240));
     painter.setRenderHint(QPainter::Antialiasing);
 
     for (Edge *edge : m_graph->edges()) {
-        drawEdge(painter, edge->from(), edge->to());
+        if (edge != m_cursorEdge && edge != m_clickedEdge) {
+            drawEdge(painter, edge, Qt::black, 2);
+        }
     }
 
     for (Vertex *vertex : m_graph->vertices()) {
         drawVertex(painter, vertex);
+    }
+
+    if (m_cursorEdge) {
+        drawEdge(painter, m_cursorEdge, QColor(255, 0, 0, 128), 4);
+    }
+    if (m_clickedEdge) {
+        drawEdge(painter, m_clickedEdge, Qt::red, 4);
     }
 
     if (m_selectedVertex) {
@@ -70,15 +109,54 @@ void GraphWidget::paintEvent(QPaintEvent *event)
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(m_cursorVertex->position(), VERTEX_RADIUS + 2, VERTEX_RADIUS + 2);
     }
+}
 
-    if (m_cursorEdge) {
-        painter.setPen(QPen(QColor(255, 0, 0, 128), 4));
-        painter.drawLine(m_cursorEdge->from()->position(), m_cursorEdge->to()->position());
-    }
-    if (m_clickedEdge) {
-        painter.setPen(QPen(Qt::red, 4));
-        painter.drawLine(m_clickedEdge->from()->position(), m_clickedEdge->to()->position());
-    }
+void GraphWidget::drawVertex(QPainter &painter, Vertex *vertex)
+{
+    painter.setPen(QPen(Qt::black, 2));
+    painter.setBrush(QBrush(Qt::lightGray));
+    painter.drawEllipse(vertex->position(), VERTEX_RADIUS, VERTEX_RADIUS);
+
+    painter.setPen(Qt::black);
+    QRect textRect(vertex->position().x() - VERTEX_RADIUS/2,
+                   vertex->position().y() - VERTEX_RADIUS/2,
+                   VERTEX_RADIUS, VERTEX_RADIUS);
+    painter.drawText(textRect, Qt::AlignCenter, QString::number(vertex->id()));
+}
+
+void GraphWidget::drawEdge(QPainter &painter, Edge *edge, const QColor &color, int width)
+{
+    Vertex *from = edge->from();
+    Vertex *to = edge->to();
+
+    QPointF startPoint = calculateEdgeStartPoint(from, to);
+    QPointF endPoint = calculateEdgeEndPoint(from, to);
+
+    painter.setPen(QPen(color, width));
+    painter.drawLine(startPoint, endPoint);
+
+    drawArrow(painter, startPoint, endPoint, color);
+}
+
+void GraphWidget::drawArrow(QPainter &painter, const QPointF &start, const QPointF &end, const QColor &color)
+{
+    QPointF direction = end - start;
+    double length = sqrt(direction.x() * direction.x() + direction.y() * direction.y());
+    if (length == 0) return;
+    QPointF unitVector = direction / length;
+    QPointF arrowEnd = end;
+    double angle = atan2(unitVector.y(), unitVector.x());
+    double arrowAngle = M_PI / 6;
+    QPointF arrowPoint1 = arrowEnd - QPointF(cos(angle - arrowAngle) * ARROW_SIZE,
+                                           sin(angle - arrowAngle) * ARROW_SIZE);
+    QPointF arrowPoint2 = arrowEnd - QPointF(cos(angle + arrowAngle) * ARROW_SIZE,
+                                           sin(angle + arrowAngle) * ARROW_SIZE);
+    QPolygonF arrowHead;
+    arrowHead << arrowEnd << arrowPoint1 << arrowPoint2;
+
+    painter.setBrush(QBrush(color));
+    painter.setPen(QPen(color, 1));
+    painter.drawPolygon(arrowHead);
 }
 
 void GraphWidget::mouseMoveEvent(QMouseEvent *event) {
@@ -164,23 +242,3 @@ void GraphWidget::keyPressEvent(QKeyEvent *event) {
         }
     }
 }
-
-void GraphWidget::drawVertex(QPainter &painter, Vertex *vertex)
-{
-    painter.setPen(QPen(Qt::black, 2));
-    painter.setBrush(QBrush(Qt::lightGray));
-    painter.drawEllipse(vertex->position(), VERTEX_RADIUS, VERTEX_RADIUS);
-
-    painter.setPen(Qt::black);
-    QRect textRect(vertex->position().x() - VERTEX_RADIUS/2,
-                   vertex->position().y() - VERTEX_RADIUS/2,
-                   VERTEX_RADIUS, VERTEX_RADIUS);
-    painter.drawText(textRect, Qt::AlignCenter, QString::number(vertex->id()));
-}
-
-void GraphWidget::drawEdge(QPainter &painter, Vertex *v1, Vertex *v2)
-{
-    painter.setPen(QPen(Qt::black, 2));
-    painter.drawLine(v1->position(), v2->position());
-}
-

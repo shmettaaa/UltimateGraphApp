@@ -26,20 +26,25 @@ protected:
 
 private:
     void drawVertex(QPainter &painter, Vertex *vertex);
-    void drawEdge(QPainter &painter, Vertex *v1, Vertex *v2);
+    void drawEdge(QPainter &painter, Edge *edge, const QColor &color = Qt::black, int width = 2);
+    void drawArrow(QPainter &painter, const QPointF &start, const QPointF &end, const QColor &color = Qt::black);
 
+    QPointF calculateEdgeStartPoint(Vertex *from, Vertex *to) const;
+    QPointF calculateEdgeEndPoint(Vertex *from, Vertex *to) const;
+    QPointF calculatePointOnCircle(const QPointF &center, const QPointF &direction, double radius) const;
 
-    Vertex *m_clickedVertex; //Для режима указателя
-    Vertex *m_cursorVertex;  //Под курсором(
+    Vertex *m_clickedVertex;
+    Vertex *m_cursorVertex;
     Edge *m_clickedEdge;
     Edge *m_cursorEdge;
 
     bool isReplacing;
     Graph *m_graph;
     Mode m_currentMode;
-    Vertex *m_selectedVertex; //Для режима рисования ребер
+    Vertex *m_selectedVertex;
 
     static const int VERTEX_RADIUS = 20;
+    static const int ARROW_SIZE = 10;
 };
 
 #endif
