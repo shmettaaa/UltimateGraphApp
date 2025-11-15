@@ -8,6 +8,8 @@ class QToolBar;
 class QAction;
 class QActionGroup;
 class QPlainTextEdit;
+class QMenu;
+class QMenuBar;
 
 class MainWindow : public QMainWindow
 {
@@ -21,18 +23,39 @@ private slots:
     void onAddVertexMode();
     void onAddEdgeMode();
     void onClearGraph();
+    void onTopologicalSort();
+    void onOpen();
+    void onSave();
+    void onExit();
 
 private:
-    void createToolBar();
+    void createToolBars();
     void createActions();
+    void createMenus();
 
     GraphWidget *m_graphWidget;
-    QToolBar *m_toolBar;
+
+    QToolBar *m_drawingToolBar;
+    QToolBar *m_algorithmToolBar;
+
     QAction *m_selectAction;
     QAction *m_addVertexAction;
     QAction *m_addEdgeAction;
     QAction *m_clearAction;
     QActionGroup *m_toolGroup;
+
+    QAction *m_topologicalSortAction;
+
+    QMenuBar *m_menuBar;
+    QMenu *m_fileMenu;
+    QMenu *m_instructionMenu;
+    QMenu *m_aboutMenu;
+    QAction *m_openAction;
+    QAction *m_saveAction;
+    QAction *m_exitAction;
+    QAction *m_instructionAction;
+    QAction *m_aboutAction;
+
     QPlainTextEdit *m_textOutput;
 };
 

@@ -17,7 +17,9 @@ public:
 
     void setMode(Mode mode);
     void clearGraph();
-
+    Graph* getGraph() const {
+        return m_graph;
+    }
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;

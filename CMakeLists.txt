@@ -26,7 +26,9 @@ add_executable(UltimateGraph main.cpp
         Vertex.cpp
         Vertex.h
         Graph.cpp
-        Graph.h)
+        Graph.h
+        GraphAlgorithms.cpp
+        GraphAlgorithms.h)
 target_link_libraries(UltimateGraph
         Qt::Core
         Qt::Gui
