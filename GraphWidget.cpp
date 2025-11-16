@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include <cmath>
+#include <QInputDialog>
 
 GraphWidget::GraphWidget(QWidget *parent) : QWidget(parent)
     , m_graph(new Graph())
@@ -12,6 +13,8 @@ GraphWidget::GraphWidget(QWidget *parent) : QWidget(parent)
     , isReplacing(false)
     , m_selectedVertex(nullptr),
     m_clickedEdge(nullptr), m_cursorEdge(nullptr)
+     , m_isWaitingForWeightInput(false)
+   , m_tempWeightInput("")
 {
     setMinimumSize(600, 400);
     setMouseTracking(true);
@@ -109,6 +112,10 @@ void GraphWidget::paintEvent(QPaintEvent *event)
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(m_cursorVertex->position(), VERTEX_RADIUS + 2, VERTEX_RADIUS + 2);
     }
+    if (m_isWaitingForWeightInput && m_clickedEdge) {
+        painter.setPen(Qt::blue);
+        painter.drawText(10, 20, "Enter weight: " + m_tempWeightInput);
+    }
 }
 
 void GraphWidget::drawVertex(QPainter &painter, Vertex *vertex)
@@ -136,6 +143,7 @@ void GraphWidget::drawEdge(QPainter &painter, Edge *edge, const QColor &color, i
     painter.drawLine(startPoint, endPoint);
 
     drawArrow(painter, startPoint, endPoint, color);
+    drawEdgeWeight(painter, edge);
 }
 
 void GraphWidget::drawArrow(QPainter &painter, const QPointF &start, const QPointF &end, const QColor &color)
@@ -241,4 +249,59 @@ void GraphWidget::keyPressEvent(QKeyEvent *event) {
             update();
         }
     }
+    else if (event->key() == Qt::Key_Return) {
+
+        if (m_clickedEdge && !m_isWaitingForWeightInput) {
+            m_isWaitingForWeightInput = true;
+            m_tempWeightInput = "";
+            update();
+        }
+        else if (m_isWaitingForWeightInput) {
+            if (!m_tempWeightInput.isEmpty()) {
+                int weight = m_tempWeightInput.toInt();
+                if (weight >= 0) {
+                    m_clickedEdge->setWeight(weight);
+                }
+            }
+            m_isWaitingForWeightInput = false;
+            m_tempWeightInput = "";
+            update();
+        }
+    }
+    else if (m_isWaitingForWeightInput) {
+        if (event->key() >= Qt::Key_0 && event->key() <= Qt::Key_9) {
+            m_tempWeightInput += event->text();
+            update();
+        }
+        else if (event->key() == Qt::Key_Escape) {
+            m_isWaitingForWeightInput = false;
+            m_tempWeightInput = "";
+            update();
+        }
+    }
+}
+
+void GraphWidget::drawEdgeWeight(QPainter &painter, Edge *edge){
+
+    QPointF startPoint = calculateEdgeStartPoint(edge->from(), edge->to());
+    QPointF endPoint = calculateEdgeEndPoint(edge->from(), edge->to());
+    QPointF center = (startPoint + endPoint) / 2;
+
+    QPointF textPos = center - QPointF(0, 10);
+
+    QFont originalFont = painter.font();
+    QFont smallFont = originalFont;
+    smallFont.setPointSize(9);
+
+    painter.setFont(smallFont);
+    painter.setPen(Qt::darkMagenta);
+
+    if (m_isWaitingForWeightInput && edge == m_clickedEdge) {
+        painter.drawText(textPos, m_tempWeightInput.isEmpty() ? "0" : m_tempWeightInput);
+    }
+    else {
+        painter.drawText(textPos, QString::number(edge->weight()));
+    }
+
+    painter.setFont(originalFont);
 }

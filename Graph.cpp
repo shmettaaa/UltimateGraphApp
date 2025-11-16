@@ -40,7 +40,7 @@ void Graph::addEdge(Vertex *from, Vertex *to)
 {
     if (from && to && from != to && !getEdge(from, to)) {
         from->addOutNeighbor(to);
-        Edge *newEdge = new Edge(from, to);
+        Edge *newEdge = new Edge(from, to, 1);
         m_edges.append(newEdge);
     }
 }

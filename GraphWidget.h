@@ -47,6 +47,11 @@ private:
 
     static const int VERTEX_RADIUS = 20;
     static const int ARROW_SIZE = 10;
+
+    bool m_isWaitingForWeightInput;
+    QString m_tempWeightInput;
+
+    void drawEdgeWeight(QPainter &painter, Edge *edge);
 };
 
 #endif
