@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "GraphWidget.h"
+#include "GraphAlgorithms.h"
 
 class QToolBar;
 class QAction;
@@ -24,6 +25,7 @@ private slots:
     void onAddEdgeMode();
     void onClearGraph();
     void onTopologicalSort();
+    void onEulerianCycle();
     void onOpen();
     void onSave();
     void onExit();
@@ -35,8 +37,10 @@ private:
 
     GraphWidget *m_graphWidget;
 
+
     QToolBar *m_drawingToolBar;
     QToolBar *m_algorithmToolBar;
+
 
     QAction *m_selectAction;
     QAction *m_addVertexAction;
@@ -44,7 +48,10 @@ private:
     QAction *m_clearAction;
     QActionGroup *m_toolGroup;
 
+
     QAction *m_topologicalSortAction;
+    QAction *m_eulerianCycleAction;
+
 
     QMenuBar *m_menuBar;
     QMenu *m_fileMenu;

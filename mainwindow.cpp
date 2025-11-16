@@ -110,6 +110,7 @@ void MainWindow::createActions()
     m_toolGroup = new QActionGroup(this);
     m_toolGroup->setExclusive(true);
 
+
     m_selectAction = new QAction("Select", this);
     m_selectAction->setCheckable(true);
     m_selectAction->setChecked(true);
@@ -131,14 +132,20 @@ void MainWindow::createActions()
     m_clearAction = new QAction("Clear", this);
     m_drawingToolBar->addAction(m_clearAction);
 
+
     m_topologicalSortAction = new QAction("Topological Sort", this);
     m_algorithmToolBar->addAction(m_topologicalSortAction);
+
+    m_eulerianCycleAction = new QAction("Eulerian Cycle", this);
+    m_algorithmToolBar->addAction(m_eulerianCycleAction);
+
 
     connect(m_addVertexAction, &QAction::triggered, this, &MainWindow::onAddVertexMode);
     connect(m_addEdgeAction, &QAction::triggered, this, &MainWindow::onAddEdgeMode);
     connect(m_clearAction, &QAction::triggered, this, &MainWindow::onClearGraph);
     connect(m_selectAction, &QAction::triggered, this, &MainWindow::onSelectMode);
     connect(m_topologicalSortAction, &QAction::triggered, this, &MainWindow::onTopologicalSort);
+    connect(m_eulerianCycleAction, &QAction::triggered, this, &MainWindow::onEulerianCycle);
 }
 
 void MainWindow::onSelectMode() {
@@ -164,6 +171,15 @@ void MainWindow::onTopologicalSort()
     QString result = GraphAlgorithms::topologicalSort(graph);
 
     m_textOutput->appendPlainText("=== Topological Sort ===");
+    m_textOutput->appendPlainText(result);
+    m_textOutput->appendPlainText("");
+}
+void MainWindow::onEulerianCycle()
+{
+    Graph* graph = m_graphWidget->getGraph();
+    QString result = GraphAlgorithms::eulerianCycle(graph);
+
+    m_textOutput->appendPlainText("=== Eulerian Cycle ===");
     m_textOutput->appendPlainText(result);
     m_textOutput->appendPlainText("");
 }
