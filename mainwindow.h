@@ -26,6 +26,8 @@ private slots:
     void onClearGraph();
     void onTopologicalSort();
     void onEulerianCycle();
+    void onDijkstra();
+    void onMaxFlow();
     void onOpen();
     void onSave();
     void onExit();
@@ -62,6 +64,8 @@ private:
     QAction *m_exitAction;
     QAction *m_instructionAction;
     QAction *m_aboutAction;
+    QAction *m_dijkstraAction;
+    QAction *m_maxFlowAction;
 
     QPlainTextEdit *m_textOutput;
 };

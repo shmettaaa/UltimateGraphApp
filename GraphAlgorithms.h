@@ -9,7 +9,8 @@ class GraphAlgorithms
 public:
     static QString topologicalSort(Graph* graph);
     static QString eulerianCycle(Graph* graph);
-
+    static QString dijkstra(Graph* graph, int startVertexId, int endVertexId);
+    static QString maxFlow(Graph* graph, int sourceId, int sinkId);
 private:
     static bool hasCycleDFS(Vertex* vertex, QSet<Vertex*>& visited, QSet<Vertex*>& recursionStack);
     static bool isWeaklyConnected(Graph* graph);

@@ -242,3 +242,10 @@ void GraphAlgorithms::eulerianDFS(Vertex* vertex, QVector<Vertex*>& path, QMap<V
     }
 }
 
+QString GraphAlgorithms::dijkstra(Graph* graph, int startVertexId, int endVertexId) {
+    return 0;
+}
+
+QString GraphAlgorithms::maxFlow(Graph* graph, int sourceId, int sinkId) {
+    return 0;
+}

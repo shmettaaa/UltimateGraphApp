@@ -11,7 +11,7 @@
 #include <QStatusBar>
 #include <QSpacerItem>
 #include "GraphAlgorithms.h"
-
+#include "VertexInputDialog.h"
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_graphWidget(nullptr)
     , m_drawingToolBar(nullptr)
@@ -139,6 +139,11 @@ void MainWindow::createActions()
     m_eulerianCycleAction = new QAction("Eulerian Cycle", this);
     m_algorithmToolBar->addAction(m_eulerianCycleAction);
 
+    m_dijkstraAction = new QAction("Dijkstra", this);
+    m_algorithmToolBar->addAction(m_dijkstraAction);
+
+    m_maxFlowAction = new QAction("Max Flow", this);
+    m_algorithmToolBar->addAction(m_maxFlowAction);
 
     connect(m_addVertexAction, &QAction::triggered, this, &MainWindow::onAddVertexMode);
     connect(m_addEdgeAction, &QAction::triggered, this, &MainWindow::onAddEdgeMode);
@@ -146,6 +151,8 @@ void MainWindow::createActions()
     connect(m_selectAction, &QAction::triggered, this, &MainWindow::onSelectMode);
     connect(m_topologicalSortAction, &QAction::triggered, this, &MainWindow::onTopologicalSort);
     connect(m_eulerianCycleAction, &QAction::triggered, this, &MainWindow::onEulerianCycle);
+    connect(m_dijkstraAction, &QAction::triggered, this, &MainWindow::onDijkstra);
+    connect(m_maxFlowAction, &QAction::triggered, this, &MainWindow::onMaxFlow);
 }
 
 void MainWindow::onSelectMode() {
@@ -165,8 +172,8 @@ void MainWindow::onClearGraph(){
     m_textOutput->clear();
 }
 
-void MainWindow::onTopologicalSort()
-{
+void MainWindow::onTopologicalSort(){
+
     Graph* graph = m_graphWidget->getGraph();
     QString result = GraphAlgorithms::topologicalSort(graph);
 
@@ -174,14 +181,49 @@ void MainWindow::onTopologicalSort()
     m_textOutput->appendPlainText(result);
     m_textOutput->appendPlainText("");
 }
-void MainWindow::onEulerianCycle()
-{
+
+void MainWindow::onEulerianCycle(){
+
     Graph* graph = m_graphWidget->getGraph();
     QString result = GraphAlgorithms::eulerianCycle(graph);
 
     m_textOutput->appendPlainText("=== Eulerian Cycle ===");
     m_textOutput->appendPlainText(result);
     m_textOutput->appendPlainText("");
+}
+
+void MainWindow::onDijkstra(){
+
+    VertexInputDialog dialog("Dijkstra Algorithm", this);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        int startId = dialog.getStartVertexId();
+        int endId = dialog.getEndVertexId();
+
+        Graph* graph = m_graphWidget->getGraph();
+        QString result = GraphAlgorithms::dijkstra(graph, startId, endId);
+
+        m_textOutput->appendPlainText("=== Dijkstra Algorithm ===");
+        m_textOutput->appendPlainText(result);
+        m_textOutput->appendPlainText("");
+    }
+}
+
+void MainWindow::onMaxFlow(){
+
+    VertexInputDialog dialog("Max Flow Algorithm", this);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        int sourceId = dialog.getStartVertexId();
+        int sinkId = dialog.getEndVertexId();
+
+        Graph* graph = m_graphWidget->getGraph();
+        QString result = GraphAlgorithms::maxFlow(graph, sourceId, sinkId);
+
+        m_textOutput->appendPlainText("=== Max Flow Algorithm ===");
+        m_textOutput->appendPlainText(result);
+        m_textOutput->appendPlainText("");
+    }
 }
 
 void MainWindow::onOpen()
