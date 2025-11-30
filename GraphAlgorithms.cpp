@@ -1,4 +1,5 @@
 #include "GraphAlgorithms.h"
+#include "Graph.h"
 #include "Vertex.h"
 #include "Edge.h"
 #include <QSet>
@@ -7,8 +8,7 @@
 #include <QQueue>
 
 
-QString GraphAlgorithms::validateGraph(Graph* graph)
-{
+QString GraphAlgorithms::validateGraph(Graph* graph){
     QString errorMessage = "";
 
     if (!graph) {
@@ -41,8 +41,7 @@ QString GraphAlgorithms::validateGraph(Graph* graph)
     return errorMessage;
 }
 
-QString GraphAlgorithms::topologicalSort(Graph* graph)
-{
+QString GraphAlgorithms::topologicalSort(Graph* graph){
     QString result = "";
     QString error = validateGraph(graph);
     if (!error.isEmpty()) {
@@ -68,8 +67,7 @@ QString GraphAlgorithms::topologicalSort(Graph* graph)
     return result;
 }
 
-bool GraphAlgorithms::hasCycleDFS(Vertex* vertex, QSet<Vertex*>& visited, QSet<Vertex*>& recursionStack)
-{
+bool GraphAlgorithms::hasCycleDFS(Vertex* vertex, QSet<Vertex*>& visited, QSet<Vertex*>& recursionStack){
     bool hasCycle = false;
 
     if (recursionStack.contains(vertex)) {
@@ -91,8 +89,7 @@ bool GraphAlgorithms::hasCycleDFS(Vertex* vertex, QSet<Vertex*>& visited, QSet<V
     return hasCycle;
 }
 
-void GraphAlgorithms::topologicalSortDFS(Vertex* vertex, QSet<Vertex*>& visited, QVector<Vertex*>& result)
-{
+void GraphAlgorithms::topologicalSortDFS(Vertex* vertex, QSet<Vertex*>& visited, QVector<Vertex*>& result){
     visited.insert(vertex);
 
     for (Vertex* neighbor : vertex->outNeighbors()) {
@@ -104,8 +101,7 @@ void GraphAlgorithms::topologicalSortDFS(Vertex* vertex, QSet<Vertex*>& visited,
     result.append(vertex);
 }
 
-bool GraphAlgorithms::isWeaklyConnected(Graph* graph)
-{
+bool GraphAlgorithms::isWeaklyConnected(Graph* graph){
     bool isConnected = true;
 
     if (graph->vertexCount() == 0) {
@@ -143,8 +139,7 @@ bool GraphAlgorithms::isWeaklyConnected(Graph* graph)
 }
 
 
-QString GraphAlgorithms::eulerianCycle(Graph* graph)
-{
+QString GraphAlgorithms::eulerianCycle(Graph* graph){
     QString result = "";
 
     if (!graph) {
@@ -194,8 +189,7 @@ QString GraphAlgorithms::eulerianCycle(Graph* graph)
     return result;
 }
 
-bool GraphAlgorithms::hasEulerianCycleConditions(Graph* graph)
-{
+bool GraphAlgorithms::hasEulerianCycleConditions(Graph* graph){
     bool conditionsSatisfied = true;
 
     if (!isWeaklyConnected(graph)) {
@@ -217,8 +211,7 @@ bool GraphAlgorithms::hasEulerianCycleConditions(Graph* graph)
     return conditionsSatisfied;
 }
 
-void GraphAlgorithms::eulerianDFS(Vertex* vertex, QVector<Vertex*>& path, QMap<Vertex*, QList<Vertex*>>& availableEdges)
-{
+void GraphAlgorithms::eulerianDFS(Vertex* vertex, QVector<Vertex*>& path, QMap<Vertex*, QList<Vertex*>>& availableEdges){
     QStack<Vertex*> stack;
     stack.push(vertex);
 
@@ -242,10 +235,280 @@ void GraphAlgorithms::eulerianDFS(Vertex* vertex, QVector<Vertex*>& path, QMap<V
     }
 }
 
-QString GraphAlgorithms::dijkstra(Graph* graph, int startVertexId, int endVertexId) {
-    return 0;
+QString GraphAlgorithms::dijkstra(Graph* graph, int startVertexId, int endVertexId){
+    QString result = "";
+    Vertex* startVertex = nullptr;
+    Vertex* endVertex = nullptr;
+
+    QString validationError = validateDijkstraInput(graph, startVertexId, endVertexId, startVertex, endVertex);
+    if (!validationError.isEmpty()) {
+        result = validationError;
+        return result;
+    }
+
+    QMap<Vertex*, int> distances;
+    QMap<Vertex*, Vertex*> previous;
+    QSet<Vertex*> unvisited;
+    initializeDijkstra(graph, distances, previous, unvisited, startVertex);
+
+    bool isAlgorithmComplete = false;
+    while (!unvisited.isEmpty() && !isAlgorithmComplete) {
+        Vertex* current = findMinDistanceVertex(unvisited, distances);
+
+        if (!current || distances[current] == std::numeric_limits<int>::max()) {
+            isAlgorithmComplete = true;
+        } else {
+            unvisited.remove(current);
+            updateNeighborDistances(current, graph, distances, previous, unvisited);
+        }
+    }
+
+    result = buildDijkstraResult(startVertex, endVertex, distances, previous);
+    return result;
 }
 
-QString GraphAlgorithms::maxFlow(Graph* graph, int sourceId, int sinkId) {
-    return 0;
+QString GraphAlgorithms::validateDijkstraInput(Graph* graph, int startVertexId, int endVertexId,
+                                              Vertex*& startVertex, Vertex*& endVertex){
+    QString errorMessage = "";
+
+    if (!graph) {
+        errorMessage = "Graph is not initialized.";
+    } else {
+        startVertex = graph->getVertexById(startVertexId);
+        endVertex = graph->getVertexById(endVertexId);
+
+        if (!startVertex) {
+            errorMessage = "Start vertex with ID " + QString::number(startVertexId) + " not found.";
+        } else if (!endVertex) {
+            errorMessage = "End vertex with ID " + QString::number(endVertexId) + " not found.";
+        } else if (startVertex == endVertex) {
+            errorMessage = "Start and end vertices are the same. Distance: 0";
+        }
+    }
+
+    return errorMessage;
+}
+
+void GraphAlgorithms::initializeDijkstra(Graph* graph, QMap<Vertex*, int>& distances,
+                                        QMap<Vertex*, Vertex*>& previous, QSet<Vertex*>& unvisited,
+                                        Vertex* startVertex){
+    for (Vertex* vertex : graph->vertices()) {
+        distances[vertex] = std::numeric_limits<int>::max();
+        previous[vertex] = nullptr;
+        unvisited.insert(vertex);
+    }
+    distances[startVertex] = 0;
+}
+
+Vertex* GraphAlgorithms::findMinDistanceVertex(const QSet<Vertex*>& unvisited, const QMap<Vertex*, int>& distances){
+    Vertex* minVertex = nullptr;
+    int minDistance = std::numeric_limits<int>::max();
+
+    for (Vertex* vertex : unvisited) {
+        if (distances[vertex] < minDistance) {
+            minDistance = distances[vertex];
+            minVertex = vertex;
+        }
+    }
+
+    return minVertex;
+}
+
+void GraphAlgorithms::updateNeighborDistances(Vertex* current, Graph* graph, QMap<Vertex*, int>& distances,
+                                            QMap<Vertex*, Vertex*>& previous, const QSet<Vertex*>& unvisited){
+    for (Vertex* neighbor : current->outNeighbors()) {
+        if (unvisited.contains(neighbor)) {
+            Edge* edge = graph->getEdge(current, neighbor);
+            if (edge) {
+                int alternative = distances[current] + edge->weight();
+                if (alternative < distances[neighbor]) {
+                    distances[neighbor] = alternative;
+                    previous[neighbor] = current;
+                }
+            }
+        }
+    }
+}
+
+QString GraphAlgorithms::buildDijkstraResult(Vertex* startVertex, Vertex* endVertex,
+                                            const QMap<Vertex*, int>& distances, const QMap<Vertex*, Vertex*>& previous){
+    QString result = "";
+
+    if (distances[endVertex] == std::numeric_limits<int>::max()) {
+        result = "No path from vertex " + QString::number(startVertex->id()) +
+                 " to vertex " + QString::number(endVertex->id());
+    } else {
+        QVector<Vertex*> path;
+        Vertex* current = endVertex;
+        bool isPathComplete = false;
+
+        while (!isPathComplete) {
+            path.prepend(current);
+            current = previous[current];
+            if (!current) {
+                isPathComplete = true;
+            }
+        }
+
+        result = "Shortest path from " + QString::number(startVertex->id()) +
+                 " to " + QString::number(endVertex->id()) + ":\n";
+        result += "Distance: " + QString::number(distances[endVertex]) + "\n";
+        result += "Path: ";
+
+        for (int i = 0; i < path.size(); ++i) {
+            result += QString::number(path[i]->id());
+            if (i < path.size() - 1) {
+                result += " → ";
+            }
+        }
+    }
+
+    return result;
+}
+
+
+
+QString GraphAlgorithms::maxFlow(Graph* graph, int sourceId, int sinkId){
+    QString result = "";
+    Vertex* source = nullptr;
+    Vertex* sink = nullptr;
+
+    QString validationError = validateMaxFlowInput(graph, sourceId, sinkId, source, sink);
+    if (!validationError.isEmpty()) {
+        result = validationError;
+        return result;
+    }
+
+    QMap<Vertex*, QMap<Vertex*, int>> residual;
+    initializeResidualNetwork(graph, residual);
+
+    int maxFlow = 0;
+    bool isPathFound = true;
+
+    while (isPathFound) {
+        QMap<Vertex*, Vertex*> parent;
+        isPathFound = findAugmentingPathBFS(source, sink, residual, parent);
+
+        if (isPathFound) {
+            int pathFlow = calculatePathFlow(source, sink, parent, residual);
+            updateResidualNetwork(source, sink, pathFlow, parent, residual);
+            maxFlow += pathFlow;
+        }
+    }
+
+    result = "Maximum flow from source " + QString::number(sourceId) +
+             " to sink " + QString::number(sinkId) + ": " + QString::number(maxFlow);
+    return result;
+}
+
+QString GraphAlgorithms::validateMaxFlowInput(Graph* graph, int sourceId, int sinkId,
+                                             Vertex*& source, Vertex*& sink){
+    QString errorMessage = "";
+
+    if (!graph) {
+        errorMessage = "Graph is not initialized.";
+    } else {
+        source = graph->getVertexById(sourceId);
+        sink = graph->getVertexById(sinkId);
+
+        if (!source) {
+            errorMessage = "Source vertex with ID " + QString::number(sourceId) + " not found.";
+        } else if (!sink) {
+            errorMessage = "Sink vertex with ID " + QString::number(sinkId) + " not found.";
+        } else if (source == sink) {
+            errorMessage = "Source and sink vertices are the same. Max flow: 0";
+        }
+    }
+
+    return errorMessage;
+}
+
+void GraphAlgorithms::initializeResidualNetwork(Graph* graph, QMap<Vertex*, QMap<Vertex*, int>>& residual){
+    for (Vertex* u : graph->vertices()) {
+        for (Vertex* v : u->outNeighbors()) {
+            Edge* edge = graph->getEdge(u, v);
+            if (edge) {
+                residual[u][v] = edge->weight();
+                if (!residual[v].contains(u)) {
+                    residual[v][u] = 0;
+                }
+            }
+        }
+    }
+}
+
+bool GraphAlgorithms::findAugmentingPathBFS(Vertex* source, Vertex* sink,
+                                           const QMap<Vertex*, QMap<Vertex*, int>>& residual,
+                                           QMap<Vertex*, Vertex*>& parent){
+    QQueue<Vertex*> queue;
+    QSet<Vertex*> visited;
+
+    queue.enqueue(source);
+    visited.insert(source);
+    parent[source] = nullptr;
+
+    bool isPathFound = false;
+    bool isBFSSearching = true;
+
+    while (!queue.isEmpty() && isBFSSearching && !isPathFound) {
+        Vertex* current = queue.dequeue();
+
+        QList<Vertex*> neighbors = residual[current].keys();
+        int neighborIndex = 0;
+
+        while (neighborIndex < neighbors.size() && !isPathFound) {
+            Vertex* neighbor = neighbors[neighborIndex];
+
+            if (!visited.contains(neighbor) && residual[current][neighbor] > 0) {
+                visited.insert(neighbor);
+                parent[neighbor] = current;
+                queue.enqueue(neighbor);
+
+                if (neighbor == sink) {
+                    isPathFound = true;
+                }
+            }
+
+            neighborIndex++;
+        }
+    }
+
+    return isPathFound;
+}
+
+int GraphAlgorithms::calculatePathFlow(Vertex* source, Vertex* sink, const QMap<Vertex*, Vertex*>& parent,
+                                      QMap<Vertex*, QMap<Vertex*, int>>& residual){
+    int pathFlow = std::numeric_limits<int>::max();
+    Vertex* current = sink;
+    bool isFlowCalculationComplete = false;
+
+    while (!isFlowCalculationComplete) {
+        Vertex* prev = parent[current];
+        if (prev) {
+            pathFlow = std::min(pathFlow, residual[prev][current]);
+            current = prev;
+        } else {
+            isFlowCalculationComplete = true;
+        }
+    }
+
+    return pathFlow;
+}
+
+void GraphAlgorithms::updateResidualNetwork(Vertex* source, Vertex* sink, int pathFlow,
+                                          const QMap<Vertex*, Vertex*>& parent,
+                                          QMap<Vertex*, QMap<Vertex*, int>>& residual){
+    Vertex* current = sink;
+    bool isNetworkUpdateComplete = false;
+
+    while (!isNetworkUpdateComplete) {
+        Vertex* prev = parent[current];
+        if (prev) {
+            residual[prev][current] -= pathFlow;
+            residual[current][prev] += pathFlow;
+            current = prev;
+        } else {
+            isNetworkUpdateComplete = true;
+        }
+    }
 }

@@ -17,6 +17,7 @@ public:
     void removeEdge(Vertex *from, Vertex *to);
     void removeEdge(Edge *edge);
 
+    Edge* getEdge(Vertex *from, Vertex *to) const;
     Edge* findEdgeAt(const QPoint &point, int radius = 5) const;
     Vertex* findVertexAt(const QPoint &point, int radius = 20) const;
     Vertex* getVertexById(int id) const;
@@ -34,7 +35,7 @@ private:
     QVector<Edge*> m_edges;
     int m_vertexCounter;
     double distanceToLineSegment(const QPoint &point, const QPoint &lineStart, const QPoint &lineEnd) const;
-    Edge* getEdge(Vertex *from, Vertex *to) const;
+
 };
 
 #endif
