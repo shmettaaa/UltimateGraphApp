@@ -28,6 +28,8 @@ private slots:
     void onEulerianCycle();
     void onDijkstra();
     void onMaxFlow();
+    void onStronglyConnectedComponents();
+    void onEulerianPath();
     void onOpen();
     void onSave();
     void onExit();
@@ -54,6 +56,8 @@ private:
     QAction *m_topologicalSortAction;
     QAction *m_eulerianCycleAction;
 
+    QAction *m_sccAction;
+    QAction *m_eulerianPathAction;
 
     QMenuBar *m_menuBar;
     QMenu *m_fileMenu;

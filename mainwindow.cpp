@@ -145,6 +145,13 @@ void MainWindow::createActions()
     m_maxFlowAction = new QAction("Max Flow", this);
     m_algorithmToolBar->addAction(m_maxFlowAction);
 
+
+    m_sccAction = new QAction("Strongly Connected Components", this);
+    m_algorithmToolBar->addAction(m_sccAction);
+
+    m_eulerianPathAction = new QAction("Eulerian Path", this);
+    m_algorithmToolBar->addAction(m_eulerianPathAction);
+
     connect(m_addVertexAction, &QAction::triggered, this, &MainWindow::onAddVertexMode);
     connect(m_addEdgeAction, &QAction::triggered, this, &MainWindow::onAddEdgeMode);
     connect(m_clearAction, &QAction::triggered, this, &MainWindow::onClearGraph);
@@ -153,6 +160,8 @@ void MainWindow::createActions()
     connect(m_eulerianCycleAction, &QAction::triggered, this, &MainWindow::onEulerianCycle);
     connect(m_dijkstraAction, &QAction::triggered, this, &MainWindow::onDijkstra);
     connect(m_maxFlowAction, &QAction::triggered, this, &MainWindow::onMaxFlow);
+    connect(m_sccAction, &QAction::triggered, this, &MainWindow::onStronglyConnectedComponents);
+    connect(m_eulerianPathAction, &QAction::triggered, this, &MainWindow::onEulerianPath);
 }
 
 void MainWindow::onSelectMode() {
@@ -224,6 +233,28 @@ void MainWindow::onMaxFlow(){
         m_textOutput->appendPlainText(result);
         m_textOutput->appendPlainText("");
     }
+}
+
+void MainWindow::onStronglyConnectedComponents()
+{
+
+    Graph* graph = m_graphWidget->getGraph();
+    QString result = GraphAlgorithms::stronglyConnectedComponents(graph);
+
+    m_textOutput->appendPlainText("=== Strongly Connected Components ===");
+    m_textOutput->appendPlainText(result);
+    m_textOutput->appendPlainText("");
+}
+
+void MainWindow::onEulerianPath()
+{
+
+    Graph* graph = m_graphWidget->getGraph();
+    QString result = GraphAlgorithms::eulerianPath(graph);
+
+    m_textOutput->appendPlainText("=== Eulerian Path ===");
+    m_textOutput->appendPlainText(result);
+    m_textOutput->appendPlainText("");
 }
 
 void MainWindow::onOpen()

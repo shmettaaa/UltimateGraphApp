@@ -11,7 +11,9 @@ public:
     static QString eulerianCycle(Graph* graph);
     static QString dijkstra(Graph* graph, int startVertexId, int endVertexId);
     static QString maxFlow(Graph* graph, int sourceId, int sinkId);
-
+    static QString stronglyConnectedComponents(Graph* graph);
+    static QString eulerianPath(Graph* graph);
+    static QString vertexDegrees(Graph* graph);
 private:
     static bool hasCycleDFS(Vertex* vertex, QSet<Vertex*>& visited, QSet<Vertex*>& recursionStack);
     static bool isWeaklyConnected(Graph* graph);
@@ -42,6 +44,17 @@ private:
     static void updateResidualNetwork(Vertex* source, Vertex* sink, int pathFlow,
                                      const QMap<Vertex*, Vertex*>& parent,
                                      QMap<Vertex*, QMap<Vertex*, int>>& residual);
+
+
+    static void kosarajuDFSFirstPass(Vertex* vertex, QSet<Vertex*>& visited, QStack<Vertex*>& finishOrder);
+    static void kosarajuDFSSecondPass(Vertex* vertex, QSet<Vertex*>& visited, QVector<Vertex*>& component);
+    static Graph* transposeGraph(Graph* graph);
+    static bool hasEulerianPathConditions(Graph* graph, Vertex*& startVertex, Vertex*& endVertex);
+    static Vertex* findEulerianStartVertex(Graph* graph);
+
 };
+
+
+
 
 #endif

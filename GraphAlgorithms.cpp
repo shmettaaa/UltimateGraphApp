@@ -512,3 +512,221 @@ void GraphAlgorithms::updateResidualNetwork(Vertex* source, Vertex* sink, int pa
         }
     }
 }
+
+
+
+QString GraphAlgorithms::stronglyConnectedComponents(Graph* graph)
+{
+    QString result = "";
+
+    if (!graph) {
+        result = "Graph is not initialized.";
+        return result;
+    }
+
+    if (graph->vertexCount() == 0) {
+        result = "Graph is empty. No vertices for SCC analysis.";
+        return result;
+    }
+
+    QSet<Vertex*> visited;
+    QStack<Vertex*> finishOrder;
+
+    for (Vertex* vertex : graph->vertices()) {
+        if (!visited.contains(vertex)) {
+            kosarajuDFSFirstPass(vertex, visited, finishOrder);
+        }
+    }
+
+    Graph* transposedGraph = transposeGraph(graph);
+
+    visited.clear();
+    QVector<QVector<Vertex*>> components;
+
+    while (!finishOrder.isEmpty()) {
+        Vertex* vertex = finishOrder.pop();
+        Vertex* transposedVertex = transposedGraph->getVertexById(vertex->id());
+
+        if (!visited.contains(transposedVertex)) {
+            QVector<Vertex*> component;
+            kosarajuDFSSecondPass(transposedVertex, visited, component);
+            components.append(component);
+        }
+    }
+
+    result = "Strongly Connected Components:\n";
+    if (components.isEmpty()) {
+        result += "No strongly connected components found.";
+    } else {
+        for (int i = 0; i < components.size(); ++i) {
+            result += "Component " + QString::number(i + 1) + " (" +
+                     QString::number(components[i].size()) + " vertices): ";
+
+            for (int j = 0; j < components[i].size(); ++j) {
+                result += QString::number(components[i][j]->id());
+                if (j < components[i].size() - 1) {
+                    result += " → ";
+                }
+            }
+            result += "\n";
+        }
+        result += "Total: " + QString::number(components.size()) + " components";
+    }
+
+    delete transposedGraph;
+    return result;
+}
+
+void GraphAlgorithms::kosarajuDFSFirstPass(Vertex* vertex, QSet<Vertex*>& visited, QStack<Vertex*>& finishOrder)
+{
+    visited.insert(vertex);
+
+    for (Vertex* neighbor : vertex->outNeighbors()) {
+        if (!visited.contains(neighbor)) {
+            kosarajuDFSFirstPass(neighbor, visited, finishOrder);
+        }
+    }
+
+    finishOrder.push(vertex);
+}
+
+void GraphAlgorithms::kosarajuDFSSecondPass(Vertex* vertex, QSet<Vertex*>& visited, QVector<Vertex*>& component)
+{
+    visited.insert(vertex);
+    component.append(vertex);
+
+    for (Vertex* neighbor : vertex->outNeighbors()) {
+        if (!visited.contains(neighbor)) {
+            kosarajuDFSSecondPass(neighbor, visited, component);
+        }
+    }
+}
+
+Graph* GraphAlgorithms::transposeGraph(Graph* graph)
+{
+    Graph* transposed = new Graph();
+
+    for (Vertex* vertex : graph->vertices()) {
+        transposed->addVertex(vertex->position());
+    }
+
+    for (Edge* edge : graph->edges()) {
+        Vertex* from = transposed->getVertexById(edge->to()->id());
+        Vertex* to = transposed->getVertexById(edge->from()->id());
+        if (from && to) {
+            transposed->addEdge(from, to);
+        }
+    }
+
+    return transposed;
+}
+
+
+QString GraphAlgorithms::eulerianPath(Graph* graph)
+{
+    QString result = "";
+
+    if (!graph) {
+        result = "Graph is not initialized.";
+        return result;
+    }
+
+    if (graph->vertexCount() == 0) {
+        result = "Graph is empty. No vertices for Eulerian path.";
+        return result;
+    }
+
+    Vertex* startVertex = nullptr;
+    Vertex* endVertex = nullptr;
+
+    bool hasEulerianPath = hasEulerianPathConditions(graph, startVertex, endVertex);
+
+    if (!hasEulerianPath) {
+        result = "Graph does not satisfy conditions for Eulerian path.";
+        return result;
+    }
+
+    if (!startVertex) {
+        startVertex = findEulerianStartVertex(graph);
+    }
+
+    if (!startVertex) {
+        result = "Cannot find start vertex for Eulerian path.";
+        return result;
+    }
+
+    QMap<Vertex*, QList<Vertex*>> availableEdges;
+    for (Vertex* vertex : graph->vertices()) {
+        availableEdges[vertex] = vertex->outNeighbors().values();
+    }
+
+    QVector<Vertex*> path;
+    QStack<Vertex*> stack;
+    stack.push(startVertex);
+
+    while (!stack.isEmpty()) {
+        Vertex* current = stack.top();
+
+        if (!availableEdges[current].isEmpty()) {
+            Vertex* next = availableEdges[current].first();
+            availableEdges[current].removeFirst();
+            stack.push(next);
+        } else {
+            path.append(current);
+            stack.pop();
+        }
+    }
+
+    QVector<Vertex*> eulerPath;
+    for (int i = path.size() - 1; i >= 0; --i) {
+        eulerPath.append(path[i]);
+    }
+
+    result = "Eulerian Path found:\n";
+    for (int i = 0; i < eulerPath.size(); ++i) {
+        result += QString::number(eulerPath[i]->id());
+        if (i < eulerPath.size() - 1) {
+            result += " → ";
+        }
+    }
+
+    return result;
+}
+
+bool GraphAlgorithms::hasEulerianPathConditions(Graph* graph, Vertex*& startVertex, Vertex*& endVertex)
+{
+    int startCount = 0;
+    int endCount = 0;
+
+    for (Vertex* vertex : graph->vertices()) {
+        int outDegree = vertex->outDegree();
+        int inDegree = vertex->inDegree();
+
+        if (outDegree - inDegree == 1) {
+            startCount++;
+            startVertex = vertex;
+        } else if (inDegree - outDegree == 1) {
+            endCount++;
+            endVertex = vertex;
+        } else if (inDegree != outDegree) {
+            return false;
+        }
+    }
+
+    bool isValid = (startCount == 0 && endCount == 0) || (startCount == 1 && endCount == 1);
+    return isValid;
+}
+
+Vertex* GraphAlgorithms::findEulerianStartVertex(Graph* graph)
+{
+    Vertex* startVertex = nullptr;
+
+    for (Vertex* vertex : graph->vertices()) {
+        if (vertex->outDegree() > 0) {
+            startVertex = vertex;
+            break;
+        }
+    }
+
+    return startVertex;
+}
