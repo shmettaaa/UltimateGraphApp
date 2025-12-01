@@ -30,6 +30,7 @@ private slots:
     void onMaxFlow();
     void onStronglyConnectedComponents();
     void onEulerianPath();
+    void onVertexDegrees();
     void onOpen();
     void onSave();
     void onExit();
@@ -70,6 +71,7 @@ private:
     QAction *m_aboutAction;
     QAction *m_dijkstraAction;
     QAction *m_maxFlowAction;
+    QAction *m_vertexDegreesAction;
 
     QPlainTextEdit *m_textOutput;
 };

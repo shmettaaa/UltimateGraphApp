@@ -28,6 +28,8 @@ public:
     int vertexCount() const { return m_vertices.size(); }
     int edgeCount() const { return m_edges.size(); }
 
+    bool saveToFile(const QString& filename) const;
+    bool loadFromFile(const QString& filename);
     void clear();
 
 private:

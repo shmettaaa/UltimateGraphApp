@@ -1,6 +1,9 @@
 #include "Graph.h"
 #include <cmath>
-
+#include <QFile>
+#include <QDataStream>
+#include <QIODevice>
+#include <QMap>
 Graph::Graph()
     : m_vertexCounter(1)
 {
@@ -140,4 +143,113 @@ void Graph::clear()
     m_vertices.clear();
 
     m_vertexCounter = 1;
+}
+
+bool Graph::saveToFile(const QString& filename) const
+{
+    QFile file(filename);
+    bool isFileOpened = false;
+
+    isFileOpened = file.open(QIODevice::WriteOnly);
+
+    if (!isFileOpened) {
+        return false;
+    }
+
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_6_0);
+
+    out << static_cast<quint32>(m_vertices.size());
+
+    for (Vertex* vertex : m_vertices) {
+        out << static_cast<quint32>(vertex->id());
+        out << vertex->position();
+    }
+
+    out << static_cast<quint32>(m_edges.size());
+
+    for (Edge* edge : m_edges) {
+        out << static_cast<quint32>(edge->from()->id());
+        out << static_cast<quint32>(edge->to()->id());
+        out << static_cast<qint32>(edge->weight());
+    }
+
+    file.close();
+    return true;
+}
+
+bool Graph::loadFromFile(const QString& filename)
+{
+    QFile file(filename);
+    bool isFileOpened = false;
+
+    isFileOpened = file.open(QIODevice::ReadOnly);
+
+    if (!isFileOpened) {
+        return false;
+    }
+
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_6_0);
+
+    clear();
+
+    quint32 vertexCount = 0;
+    in >> vertexCount;
+
+    QMap<quint32, Vertex*> vertexMap;
+
+    bool isVertexLoadingSuccessful = true;
+    for (quint32 i = 0; i < vertexCount && isVertexLoadingSuccessful; ++i) {
+        quint32 id = 0;
+        QPoint position;
+
+        in >> id;
+        in >> position;
+
+        if (in.status() != QDataStream::Ok) {
+            isVertexLoadingSuccessful = false;
+        } else {
+            Vertex* vertex = new Vertex(static_cast<int>(id), position);
+            m_vertices.append(vertex);
+            vertexMap[id] = vertex;
+
+            // Обновляем счетчик ID
+            if (id >= static_cast<quint32>(m_vertexCounter)) {
+                m_vertexCounter = static_cast<int>(id) + 1;
+            }
+        }
+    }
+
+    quint32 edgeCount = 0;
+    in >> edgeCount;
+
+    bool isEdgeLoadingSuccessful = true;
+    for (quint32 i = 0; i < edgeCount && isEdgeLoadingSuccessful; ++i) {
+        quint32 fromId = 0;
+        quint32 toId = 0;
+        qint32 weight = 0;
+
+        in >> fromId;
+        in >> toId;
+        in >> weight;
+
+        if (in.status() != QDataStream::Ok) {
+            isEdgeLoadingSuccessful = false;
+        } else {
+            Vertex* fromVertex = vertexMap.value(fromId, nullptr);
+            Vertex* toVertex = vertexMap.value(toId, nullptr);
+
+            if (fromVertex && toVertex && fromVertex != toVertex) {
+                fromVertex->addOutNeighbor(toVertex);
+                Edge* edge = new Edge(fromVertex, toVertex, weight);
+                m_edges.append(edge);
+            }
+        }
+    }
+
+    file.close();
+
+    bool isLoadSuccessful = (isVertexLoadingSuccessful && isEdgeLoadingSuccessful);
+    return isLoadSuccessful;
 }

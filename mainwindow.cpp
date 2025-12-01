@@ -12,6 +12,9 @@
 #include <QSpacerItem>
 #include "GraphAlgorithms.h"
 #include "VertexInputDialog.h"
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QApplication>
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_graphWidget(nullptr)
     , m_drawingToolBar(nullptr)
@@ -152,6 +155,9 @@ void MainWindow::createActions()
     m_eulerianPathAction = new QAction("Eulerian Path", this);
     m_algorithmToolBar->addAction(m_eulerianPathAction);
 
+    m_vertexDegreesAction = new QAction("Vertex Degrees", this);
+    m_algorithmToolBar->addAction(m_vertexDegreesAction);
+
     connect(m_addVertexAction, &QAction::triggered, this, &MainWindow::onAddVertexMode);
     connect(m_addEdgeAction, &QAction::triggered, this, &MainWindow::onAddEdgeMode);
     connect(m_clearAction, &QAction::triggered, this, &MainWindow::onClearGraph);
@@ -162,6 +168,7 @@ void MainWindow::createActions()
     connect(m_maxFlowAction, &QAction::triggered, this, &MainWindow::onMaxFlow);
     connect(m_sccAction, &QAction::triggered, this, &MainWindow::onStronglyConnectedComponents);
     connect(m_eulerianPathAction, &QAction::triggered, this, &MainWindow::onEulerianPath);
+    connect(m_vertexDegreesAction, &QAction::triggered, this, &MainWindow::onVertexDegrees);
 }
 
 void MainWindow::onSelectMode() {
@@ -257,17 +264,85 @@ void MainWindow::onEulerianPath()
     m_textOutput->appendPlainText("");
 }
 
-void MainWindow::onOpen()
+void MainWindow::onVertexDegrees()
 {
 
+    Graph* graph = m_graphWidget->getGraph();
+    QString result = GraphAlgorithms::vertexDegrees(graph);
+
+    m_textOutput->appendPlainText("=== Vertex Degrees ===");
+    m_textOutput->appendPlainText(result);
+    m_textOutput->appendPlainText("");
 }
+
+void MainWindow::onOpen()
+{
+    QString filename = QFileDialog::getOpenFileName(
+        this,
+        "Open Graph File",
+        "",
+        "Graph Files (*.graph);;All Files (*.*)"
+    );
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    if (!m_graphWidget) {
+        m_textOutput->appendPlainText("Error: GraphWidget is not initialized.");
+        return;
+    }
+
+    Graph* graph = m_graphWidget->getGraph();
+    bool isLoadSuccessful = graph->loadFromFile(filename);
+
+    if (isLoadSuccessful) {
+        m_textOutput->appendPlainText("Graph loaded successfully from: " + filename);
+        m_graphWidget->update();
+    } else {
+        m_textOutput->appendPlainText("Error: Failed to load graph from: " + filename);
+    }
+
+    m_textOutput->appendPlainText("");
+}
+
 
 void MainWindow::onSave()
 {
+    QString filename = QFileDialog::getSaveFileName(
+        this,
+        "Save Graph File",
+        "",
+        "Graph Files (*.graph);;All Files (*.*)"
+    );
 
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    if (!filename.endsWith(".graph", Qt::CaseInsensitive)) {
+        filename += ".graph";
+    }
+
+    if (!m_graphWidget) {
+        m_textOutput->appendPlainText("Error: GraphWidget is not initialized.");
+        return;
+    }
+
+    Graph* graph = m_graphWidget->getGraph();
+    bool isSaveSuccessful = graph->saveToFile(filename);
+
+    if (isSaveSuccessful) {
+        m_textOutput->appendPlainText("Graph saved successfully to: " + filename);
+    } else {
+        m_textOutput->appendPlainText("Error: Failed to save graph to: " + filename);
+    }
+
+    m_textOutput->appendPlainText("");
 }
+
 
 void MainWindow::onExit()
 {
-
+    QApplication::quit();
 }

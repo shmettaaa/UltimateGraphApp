@@ -730,3 +730,33 @@ Vertex* GraphAlgorithms::findEulerianStartVertex(Graph* graph)
 
     return startVertex;
 }
+
+QString GraphAlgorithms::vertexDegrees(Graph* graph)
+{
+    QString result = "";
+
+    if (!graph) {
+        result = "Graph is not initialized.";
+        return result;
+    }
+
+    if (graph->vertexCount() == 0) {
+        result = "Graph is empty. No vertices for degree analysis.";
+        return result;
+    }
+
+    result = "Vertex degrees:\n";
+
+    for (Vertex* vertex : graph->vertices()) {
+        int inDegree = vertex->inDegree();
+        int outDegree = vertex->outDegree();
+        int totalDegree = inDegree + outDegree;
+
+        result += "Vertex " + QString::number(vertex->id()) + ": ";
+        result += "in=" + QString::number(inDegree) + ", ";
+        result += "out=" + QString::number(outDegree) + ", ";
+        result += "total=" + QString::number(totalDegree) + "\n";
+    }
+
+    return result;
+}
