@@ -15,6 +15,9 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QApplication>
+#include <QFont>
+#include <QPalette>
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_graphWidget(nullptr)
     , m_drawingToolBar(nullptr)
@@ -37,14 +40,33 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_textOutput(nullptr)
 {
     setWindowTitle("Graph Application");
-    setMinimumSize(1000, 800);
+    setMinimumSize(1100, 800);
+
+    setStyleSheet(
+        "QMainWindow {"
+        "   background-color: #f0f0f0;"
+        "}"
+    );
+
     createMenus();
 
     QWidget *centralWidget = new QWidget(this);
+    centralWidget->setStyleSheet(
+        "QWidget {"
+        "   background-color: #f0f0f0;"
+        "}"
+    );
     setCentralWidget(centralWidget);
+
     QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
+    mainLayout->setSpacing(10);
+
     QHBoxLayout *contentLayout = new QHBoxLayout();
+    contentLayout->setSpacing(10);
+
     QVBoxLayout *leftPanelLayout = new QVBoxLayout();
+    leftPanelLayout->setSpacing(5);
 
     createToolBars();
     createActions();
@@ -53,23 +75,116 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     leftPanelLayout->addStretch(1);
     leftPanelLayout->addWidget(m_algorithmToolBar);
 
+    leftPanelLayout->setAlignment(Qt::AlignTop);
     contentLayout->addLayout(leftPanelLayout);
+
+    QWidget *graphContainer = new QWidget(this);
+    graphContainer->setStyleSheet(
+        "QWidget {"
+        "   background-color: white;"
+        "   border: 2px solid #4CAF50;"
+        "   border-radius: 8px;"
+        "}"
+    );
+    QVBoxLayout *graphContainerLayout = new QVBoxLayout(graphContainer);
+    graphContainerLayout->setContentsMargins(0, 0, 0, 0);
+
     m_graphWidget = new GraphWidget(this);
-    contentLayout->addWidget(m_graphWidget, 1);
+    graphContainerLayout->addWidget(m_graphWidget);
+
+    contentLayout->addWidget(graphContainer, 1);
+
     mainLayout->addLayout(contentLayout, 1);
+
+    QWidget *textContainer = new QWidget(this);
+    textContainer->setStyleSheet(
+        "QWidget {"
+        "   background-color: white;"
+        "   border: 2px solid #4CAF50;"
+        "   border-radius: 8px;"
+        "}"
+    );
+    QVBoxLayout *textContainerLayout = new QVBoxLayout(textContainer);
+    textContainerLayout->setContentsMargins(5, 5, 5, 5);
 
     m_textOutput = new QPlainTextEdit(this);
     m_textOutput->setReadOnly(true);
-    m_textOutput->setMaximumHeight(200);
-    m_textOutput->setPlaceholderText("Results of graph algorithms will be there)");
-    m_textOutput->setStyleSheet("QPlainTextEdit { background-color: #ffffff; border: 1px solid #dee2e6; padding: 8px; }");
+    m_textOutput->setMaximumHeight(180);
 
-    mainLayout->addWidget(m_textOutput);
+    m_textOutput->setStyleSheet(
+        "QPlainTextEdit {"
+        "   background-color: white;"
+        "   border: none;"
+        "   padding: 6px;"
+        "   font-family: 'Segoe UI';"
+        "   font-size: 18px;"
+        "}"
+        "QScrollBar:vertical {"
+        "   border: none;"
+        "   background: #f0f0f0;"
+        "   width: 8px;"
+        "   margin: 0px 0px 0px 0px;"
+        "}"
+        "QScrollBar::handle:vertical {"
+        "   background: #4CAF50;"
+        "   min-height: 15px;"
+        "   border-radius: 4px;"
+        "}"
+        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+        "   border: none;"
+        "   background: none;"
+        "}"
+    );
+
+    m_textOutput->setPlaceholderText("Results of graph algorithms will appear here...");
+
+    textContainerLayout->addWidget(m_textOutput);
+    mainLayout->addWidget(textContainer);
 }
 
 void MainWindow::createMenus()
 {
     m_menuBar = menuBar();
+
+    m_menuBar->setStyleSheet(
+        "QMenuBar {"
+        "   background-color: #4CAF50;"
+        "   color: white;"
+        "   font-weight: bold;"
+        "   padding: 3px;"
+        "   font-size: 10px;"
+        "}"
+        "QMenuBar::item {"
+        "   background-color: transparent;"
+        "   padding: 4px 8px;"
+        "   border-radius: 3px;"
+        "}"
+        "QMenuBar::item:selected {"
+        "   background-color: #45a049;"
+        "}"
+        "QMenuBar::item:pressed {"
+        "   background-color: #3d8b40;"
+        "}"
+        "QMenu {"
+        "   background-color: white;"
+        "   border: 1px solid #4CAF50;"
+        "   padding: 3px;"
+        "   font-size: 10px;"
+        "}"
+        "QMenu::item {"
+        "   padding: 4px 20px 4px 15px;"
+        "   border-radius: 2px;"
+        "}"
+        "QMenu::item:selected {"
+        "   background-color: #4CAF50;"
+        "   color: white;"
+        "}"
+        "QMenu::separator {"
+        "   height: 1px;"
+        "   background: #4CAF50;"
+        "   margin: 3px 8px;"
+        "}"
+    );
 
     m_fileMenu = m_menuBar->addMenu("File");
 
@@ -77,15 +192,22 @@ void MainWindow::createMenus()
     m_saveAction = new QAction("Save", this);
     m_exitAction = new QAction("Exit", this);
 
+    QFont menuFont("Segoe UI", 9);
+    m_openAction->setFont(menuFont);
+    m_saveAction->setFont(menuFont);
+    m_exitAction->setFont(menuFont);
+
     m_fileMenu->addAction(m_openAction);
     m_fileMenu->addAction(m_saveAction);
     m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_exitAction);
 
     m_instructionAction = new QAction("Instruction", this);
+    m_instructionAction->setFont(menuFont);
     m_menuBar->addAction(m_instructionAction);
 
-    m_aboutAction = new QAction("About developer", this);
+    m_aboutAction = new QAction("About", this);
+    m_aboutAction->setFont(menuFont);
     m_menuBar->addAction(m_aboutAction);
 
     connect(m_openAction, &QAction::triggered, this, &MainWindow::onOpen);
@@ -95,17 +217,52 @@ void MainWindow::createMenus()
 
 void MainWindow::createToolBars()
 {
+    QString toolbarStyle =
+        "QToolBar {"
+        "   background-color: white;"
+        "   border: 2px solid #4CAF50;"
+        "   border-radius: 6px;"
+        "   padding: 5px;"
+        "   spacing: 3px;"
+        "}"
+        "QToolButton {"
+        "   background-color: #4CAF50;"
+        "   border: none;"
+        "   color: white;"
+        "   padding: 4px;"
+        "   border-radius: 4px;"
+        "   min-width: 80px;"
+        "   min-height: 28px;"
+        "   font-weight: bold;"
+        "   font-size: 9px;"
+        "}"
+        "QToolButton:hover {"
+        "   background-color: #45a049;"
+        "}"
+        "QToolButton:pressed {"
+        "   background-color: #3d8b40;"
+        "}"
+        "QToolButton:checked {"
+        "   background-color: #2E7D32;"
+        "   border: 1px solid #1B5E20;"
+        "}"
+        "QToolButton:checked:hover {"
+        "   background-color: #388E3C;"
+        "}";
+
     m_drawingToolBar = new QToolBar("Drawing Tools", this);
     m_drawingToolBar->setOrientation(Qt::Vertical);
-    m_drawingToolBar->setIconSize(QSize(32, 32));
-    m_drawingToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    m_drawingToolBar->setStyleSheet("QToolBar { spacing: 5px; padding: 10px; }");
+    m_drawingToolBar->setIconSize(QSize(20, 20));
+    m_drawingToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    m_drawingToolBar->setStyleSheet(toolbarStyle);
+    m_drawingToolBar->setFixedWidth(100);
 
     m_algorithmToolBar = new QToolBar("Algorithm Tools", this);
     m_algorithmToolBar->setOrientation(Qt::Vertical);
-    m_algorithmToolBar->setIconSize(QSize(32, 32));
-    m_algorithmToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    m_algorithmToolBar->setStyleSheet("QToolBar { spacing: 5px; padding: 10px; }");
+    m_algorithmToolBar->setIconSize(QSize(20, 20));
+    m_algorithmToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    m_algorithmToolBar->setStyleSheet(toolbarStyle);
+    m_algorithmToolBar->setFixedWidth(100);
 }
 
 void MainWindow::createActions()
@@ -113,49 +270,59 @@ void MainWindow::createActions()
     m_toolGroup = new QActionGroup(this);
     m_toolGroup->setExclusive(true);
 
+    QFont actionFont("Segoe UI", 8, QFont::Bold);
 
     m_selectAction = new QAction("Select", this);
     m_selectAction->setCheckable(true);
     m_selectAction->setChecked(true);
+    m_selectAction->setFont(actionFont);
     m_toolGroup->addAction(m_selectAction);
     m_drawingToolBar->addAction(m_selectAction);
 
     m_addVertexAction = new QAction("Add Vertex", this);
     m_addVertexAction->setCheckable(true);
+    m_addVertexAction->setFont(actionFont);
     m_toolGroup->addAction(m_addVertexAction);
     m_drawingToolBar->addAction(m_addVertexAction);
 
     m_addEdgeAction = new QAction("Add Edge", this);
     m_addEdgeAction->setCheckable(true);
+    m_addEdgeAction->setFont(actionFont);
     m_toolGroup->addAction(m_addEdgeAction);
     m_drawingToolBar->addAction(m_addEdgeAction);
 
     m_drawingToolBar->addSeparator();
 
     m_clearAction = new QAction("Clear", this);
+    m_clearAction->setFont(actionFont);
     m_drawingToolBar->addAction(m_clearAction);
 
-
-    m_topologicalSortAction = new QAction("Topological Sort", this);
+    m_topologicalSortAction = new QAction("Topological", this);
+    m_topologicalSortAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_topologicalSortAction);
 
-    m_eulerianCycleAction = new QAction("Eulerian Cycle", this);
+    m_eulerianCycleAction = new QAction("Euler Cycle", this);
+    m_eulerianCycleAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_eulerianCycleAction);
 
     m_dijkstraAction = new QAction("Dijkstra", this);
+    m_dijkstraAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_dijkstraAction);
 
     m_maxFlowAction = new QAction("Max Flow", this);
+    m_maxFlowAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_maxFlowAction);
 
-
-    m_sccAction = new QAction("Strongly Connected Components", this);
+    m_sccAction = new QAction("SCC", this);
+    m_sccAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_sccAction);
 
-    m_eulerianPathAction = new QAction("Eulerian Path", this);
+    m_eulerianPathAction = new QAction("Euler Path", this);
+    m_eulerianPathAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_eulerianPathAction);
 
-    m_vertexDegreesAction = new QAction("Vertex Degrees", this);
+    m_vertexDegreesAction = new QAction("Degrees", this);
+    m_vertexDegreesAction->setFont(actionFont);
     m_algorithmToolBar->addAction(m_vertexDegreesAction);
 
     connect(m_addVertexAction, &QAction::triggered, this, &MainWindow::onAddVertexMode);
@@ -170,6 +337,7 @@ void MainWindow::createActions()
     connect(m_eulerianPathAction, &QAction::triggered, this, &MainWindow::onEulerianPath);
     connect(m_vertexDegreesAction, &QAction::triggered, this, &MainWindow::onVertexDegrees);
 }
+
 
 void MainWindow::onSelectMode() {
     m_graphWidget->setMode(GraphWidget::SelectMode);

@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-
+    void onOpen();
 private slots:
     void onSelectMode();
     void onAddVertexMode();
@@ -31,7 +31,7 @@ private slots:
     void onStronglyConnectedComponents();
     void onEulerianPath();
     void onVertexDegrees();
-    void onOpen();
+
     void onSave();
     void onExit();
 

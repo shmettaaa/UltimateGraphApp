@@ -9,20 +9,17 @@ Graph::Graph()
 {
 }
 
-Graph::~Graph()
-{
+Graph::~Graph(){
     clear();
 }
 
-Vertex* Graph::addVertex(const QPoint &position)
-{
+Vertex* Graph::addVertex(const QPoint &position){
     Vertex *newVertex = new Vertex(m_vertexCounter++, position);
     m_vertices.append(newVertex);
     return newVertex;
 }
 
-void Graph::removeVertex(Vertex *vertex)
-{
+void Graph::removeVertex(Vertex *vertex){
     if (m_vertices.contains(vertex)) {
         QVector<Edge*> edgesToRemove;
         for (Edge *edge : m_edges) {
@@ -39,8 +36,7 @@ void Graph::removeVertex(Vertex *vertex)
     }
 }
 
-void Graph::addEdge(Vertex *from, Vertex *to)
-{
+void Graph::addEdge(Vertex *from, Vertex *to){
     if (from && to && from != to && !getEdge(from, to)) {
         from->addOutNeighbor(to);
         Edge *newEdge = new Edge(from, to, 1);
@@ -48,16 +44,14 @@ void Graph::addEdge(Vertex *from, Vertex *to)
     }
 }
 
-void Graph::removeEdge(Vertex *from, Vertex *to)
-{
+void Graph::removeEdge(Vertex *from, Vertex *to){
     Edge *edge = getEdge(from, to);
     if (edge) {
         removeEdge(edge);
     }
 }
 
-void Graph::removeEdge(Edge *edge)
-{
+void Graph::removeEdge(Edge *edge){
     if (m_edges.contains(edge)) {
         if (edge->from()) {
             edge->from()->removeOutNeighbor(edge->to());

@@ -14,9 +14,13 @@ public:
 
     signals:
         void newProjectClicked();
+    void openProjectClicked();
+    void exitClicked();
 
 private:
     QPushButton *m_newProjectButton;
+    QPushButton *m_openProjectButton;
+    QPushButton *m_exitButton;
 };
 
 #endif
